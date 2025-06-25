@@ -1,4 +1,5 @@
 package com.chronoscouriers.enums;
 
-public class AssignmentStatus {
+public enum AssignmentStatus {
+    ACTIVE, COMPLETED, FAILED
 }
