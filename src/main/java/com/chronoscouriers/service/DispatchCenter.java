@@ -76,19 +76,23 @@ public class DispatchCenter {
             throw new IllegalStateException("Assignment " + assignmentId + " is already completed.");
         }
 
-        Rider rider = findRider(assignment.getRiderId());
+        // ✅ Mark assignment as completed
+        assignment.markCompleted();
+
+        // ✅ Update related entities
         Package pkg = findPackage(assignment.getPackageId());
-
-        assignment.setStatus(AssignmentStatus.COMPLETED);
-        assignment.setCompletionTime(System.currentTimeMillis());
-
         pkg.setStatus(PackageStatus.DELIVERED);
+
+        Rider rider = findRider(assignment.getRiderId());
         rider.setStatus(RiderStatus.AVAILABLE);
         rider.setCurrentAssignmentId(null);
 
         logger.logEvent("Delivery completed.", assignment.getPackageId());
+
+        // Try dispatching new packages
         dispatchPackages();
     }
+
 
     private void assignPackage(Rider rider, Package pkg) {
         pendingPackages.remove(pkg);
@@ -113,7 +117,7 @@ public class DispatchCenter {
             Package pkg = findPackage(assignment.getPackageId());
 
             // add the package in the queue again
-            assignment.setStatus(AssignmentStatus.CANCELLED);
+            assignment.markCancelled();
             pkg.setStatus(PackageStatus.PENDING_PICKUP);
             pendingPackages.add(pkg);
             rider.setCurrentAssignmentId(null);
@@ -145,4 +149,41 @@ public class DispatchCenter {
         if (!assignments.containsKey(assignmentId)) throw new NoSuchElementException("Assignment not found: " + assignmentId);
         return assignments.get(assignmentId);
     }
+
+    public List<Assignment> getCompletedAssignmentsForRider(String riderId, long withinLastMillis) {
+        long now = System.currentTimeMillis();
+        List<Assignment> results = new ArrayList<>();
+        for (Assignment assignment : assignments.values()) {
+            if (assignment.getRiderId().equals(riderId) &&
+                    assignment.getStatus() == AssignmentStatus.COMPLETED &&
+                    (now - assignment.getCompletionTime() <= withinLastMillis)) {
+                results.add(assignment);
+            }
+        }
+        return results;
+    }
+
+    public List<Package> getMissedExpressDeliveries() {
+        List<Package> missed = new ArrayList<>();
+        for (Package pkg : packages.values()) {
+            if (pkg.getType() == PackageType.EXPRESS && pkg.getStatus() == PackageStatus.DELIVERED) {
+                Assignment assignment = findAssignmentForPackage(pkg.getPackageId());
+                if (assignment != null && assignment.getCompletionTime() > pkg.getDeliveryDeadline()) {
+                    missed.add(pkg);
+                }
+            }
+        }
+        return missed;
+    }
+
+    // Helper method
+    private Assignment findAssignmentForPackage(String packageId) {
+        for (Assignment assignment : assignments.values()) {
+            if (assignment.getPackageId().equals(packageId)) {
+                return assignment;
+            }
+        }
+        return null;
+    }
+
 }

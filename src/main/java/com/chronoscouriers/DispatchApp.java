@@ -2,12 +2,12 @@ package com.chronoscouriers;
 
 import com.chronoscouriers.enums.PackageType;
 import com.chronoscouriers.enums.RiderStatus;
+import com.chronoscouriers.model.Assignment;
+import com.chronoscouriers.model.Package;
 import com.chronoscouriers.service.DispatchCenter;
 import com.chronoscouriers.service.LoggingService;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Scanner;
-import java.util.Set;
+
+import java.util.*;
 
 public class DispatchApp {
 
@@ -78,6 +78,31 @@ public class DispatchApp {
             case "HELP":
                 printHelp();
                 break;
+            case "GET_RIDER_DELIVERED":
+                long last24h = 24 * 60 * 60 * 1000;
+                List<Assignment> delivered = center.getCompletedAssignmentsForRider(parts[1], last24h);
+                if (delivered.isEmpty()) {
+                    System.out.println("No deliveries found for rider " + parts[1] + " in the last 24h.");
+                } else {
+                    System.out.println("Deliveries for rider " + parts[1] + " in the last 24h:");
+                    for (Assignment a : delivered) {
+                        System.out.println(" -> Package " + a.getPackageId() + ", Completed at: " + new java.util.Date(a.getCompletionTime()));
+                    }
+                }
+                break;
+
+            case "GET_MISSED_EXPRESS":
+                List<Package> missed = center.getMissedExpressDeliveries();
+                if (missed.isEmpty()) {
+                    System.out.println("No missed express deliveries.");
+                } else {
+                    System.out.println("Missed express deliveries:");
+                    for (Package p : missed) {
+                        System.out.println(" -> " + p.getPackageId() + " (Deadline: " + new java.util.Date(p.getDeliveryDeadline()) + ")");
+                    }
+                }
+                break;
+
             default:
                 System.out.println("Unknown command. Type 'HELP' for options.");
         }
