@@ -1,5 +1,8 @@
 package com.chronoscouriers.enums;
 
 public enum PackageType {
-    EXPRESS, STANDARD
+    STANDARD,
+    EXPRESS,
+    FRAGILE,
+    DOCUMENT
 }

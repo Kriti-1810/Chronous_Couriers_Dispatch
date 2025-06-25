@@ -1,5 +1,8 @@
 package com.chronoscouriers.enums;
 
 public enum AssignmentStatus {
-    ACTIVE, COMPLETED, FAILED
+    PENDING,
+    IN_PROGRESS,
+    COMPLETED,
+    CANCELLED
 }

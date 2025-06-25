@@ -1,5 +1,8 @@
 package com.chronoscouriers.enums;
 
 public enum RiderStatus {
-    AVAILABLE, BUSY, OFFLINE
+    AVAILABLE,
+    ON_DELIVERY,
+    OFFLINE,
+    ON_BREAK
 }
