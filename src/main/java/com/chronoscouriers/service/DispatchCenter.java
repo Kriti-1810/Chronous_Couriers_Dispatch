@@ -69,6 +69,10 @@ public class DispatchCenter {
             }
         }
     }
+    // At the end of DispatchCenter.java
+    public Map<String, Assignment> getAllAssignments() {
+        return this.assignments;
+    }
 
     public void completeDelivery(String assignmentId) {
         Assignment assignment = findAssignment(assignmentId);
