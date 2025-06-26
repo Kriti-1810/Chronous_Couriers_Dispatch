@@ -1,0 +1,70 @@
+Solution Implemented : 
+
+Chronos Couriers is a courier dispatch system that prioritizes urgent deliveries and assigns available riders efficiently. It supports fragile package handling, status tracking, and audit logs—all implemented in a single-threaded, in-memory Java application with no external dependencies.
+
+Key Features Implemented
+* Prioritized dispatching of EXPRESS over STANDARD packages
+
+* Deadline-aware assignment logic
+
+* Support for fragile package handling
+
+* Rider availability tracking and dynamic assignment
+
+* Audit logs for pickup and delivery events
+
+* In-memory, modular, and easily testable system
+
+* Command-line driven simulation through Main.java
+
+Design Pattern Choices
+
+Singleton : 
+ DispatchCenter  : Manages all state and central coordination of packages, riders, assignments
+Strategy pattern comparator for sorting	Encapsulates package prioritization logic based on multiple criteria.
+Factory Design pattern for assignment creation	Cleanly generates new assignment records with unique IDs
+
+ Algorithms and Data Structures Used
+
+Package Prioritization
+Algorithm: Multi-level sorting
+
+1st: PackageType (EXPRESS before STANDARD)
+
+2nd: deadline (earlier first)
+
+3rd: orderTime (earlier first)
+
+
+Comparator<Package> priorityComparator = Comparator
+    .comparing(Package::getType)
+    .thenComparing(Package::getDeadline)
+    .thenComparing(Package::getOrderTime);
+Rationale: This ensures that the most urgent packages are handled first, regardless of volume.
+
+ Rider Matching
+Algorithm: Linear scan with conditions
+
+Checks availability
+
+Verifies fragile-handling ability if needed
+
+Rationale: Keeps logic simple and readable. Future optimization can include distance-based sorting or a priority queue of riders.
+
+     Data Structures
+* Riders	Map<String, Rider>	: 	O(1) access by rider ID
+* Packages	Map<String, Package>	: Fast lookup, status tracking
+* Assignments	Map<String, Assignment> :	Centralized audit and delivery records
+* Package Queue (sorted)	List<Package> + custom sort :	Allows dynamic reprioritization when needed
+
+Error Handling
+* Null and ID existence checks (e.g., rider or package must exist before assignment)
+
+* Prevents assigning unavailable riders or already assigned packages
+
+ Testability
+* Modular entity classes
+
+* Centralized dispatch logic
+
+

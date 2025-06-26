@@ -48,7 +48,7 @@ Requirement: FRAGILE
 ✅ 3. Mark the rider as available
 
 UPDATE_RIDER_STATUS R1 AVAILABLE
- 4️. Dispatch
+✅ 4️. Dispatch
 
 DISPATCH
 ✅ Will try to match available rider(s) with pending order(s).
