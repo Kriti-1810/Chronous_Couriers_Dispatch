@@ -9,6 +9,7 @@ import com.chronoscouriers.service.LoggingService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -113,6 +114,48 @@ public class DispatchAppTest {
         List<Package> missed = dispatchCenter.getMissedExpressDeliveries();
         assertEquals(1, missed.size(), "Should have 1 missed express delivery");
     }
+    @Test
+    void testDispatchPrioritizationWithMultipleRidersAndPackages() {
+        // Add Riders
+        dispatchCenter.addRider("R1", "Rahul", Set.of("FRAGILE"));
+        dispatchCenter.addRider("R2", "Ananya", Set.of("FRAGILE"));
+        dispatchCenter.updateRiderStatus("R1", RiderStatus.AVAILABLE);
+        dispatchCenter.updateRiderStatus("R2", RiderStatus.AVAILABLE);
+
+        long now = System.currentTimeMillis();
+
+        // Add Packages:
+        // EXPRESS packages
+        dispatchCenter.placeOrder("P1", PackageType.EXPRESS, now + 100000, "Location1", 1.5, Set.of("FRAGILE"));
+        dispatchCenter.placeOrder("P2", PackageType.EXPRESS, now + 50000, "Location2", 2.5, Set.of("FRAGILE"));
+        // STANDARD package
+        dispatchCenter.placeOrder("P3", PackageType.STANDARD, now + 150000, "Location3", 3.0, Set.of());
+
+        // Dispatch
+        dispatchCenter.dispatchPackages();
+
+        // Collect assigned packages
+        List<Assignment> assignedAssignments = new ArrayList<>(dispatchCenter.getAllAssignments().values());
+
+        // There should be 2 assignments (one for R1, one for R2).
+        assertEquals(2, assignedAssignments.size(), "Two riders should have been assigned packages");
+
+        // Ensure both assigned packages are EXPRESS
+        long expressCount = assignedAssignments.stream()
+                .map(a -> dispatchCenter.findPackage(a.getPackageId()))
+                .filter(p -> p.getType() == PackageType.EXPRESS)
+                .count();
+        assertEquals(2, expressCount, "Only EXPRESS packages should be assigned first");
+
+        // The one with the earlier deadline should be assigned first
+        long firstDeadline = assignedAssignments.stream()
+                .map(a -> dispatchCenter.findPackage(a.getPackageId()))
+                .map(Package::getDeliveryDeadline)
+                .min(Long::compare)
+                .orElse(Long.MAX_VALUE);
+        assertEquals(now + 50000, firstDeadline, "Earliest deadline EXPRESS package should be assigned first");
+    }
+
 }
 
 
